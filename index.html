@@ -39,7 +39,7 @@
         document.observe('dom:loaded', function() {
         
           // init
-          tlist2 = new FacebookList('facebook-demo', 'facebook-auto',{ newValues: true });
+          tlist2 = new FacebookList('facebook-demo', 'facebook-auto',{ newValues: true, regexSearch: false });
 
           var myjson = [{"caption":"Manuel Mujica Lainez","value":4},{"caption":"Gustavo Nielsen","value":5},{"caption":"Silvina Ocampo","value":6},{"caption":"Victoria Ocampo", "value":7},{"caption":"Hector German Oesterheld", "value":8},{"caption":"Olga Orozco", "value":9},{"caption":"Juan L. Ortiz", "value":10},{"caption":"Alicia Partnoy", "value":11},{"caption":"Roberto Payro", "value":12},{"caption":"Ricardo Piglia", "value":13},{"caption":"Felipe Pigna", "value":14},{"caption":"Alejandra Pizarnik", "value":15},{"caption":"Antonio Porchia", "value":16},{"caption":"Juan Carlos Portantiero", "value":17},{"caption":"Manuel Puig", "value":18},{"caption":"Andres Rivera", "value":19},{"caption":"Mario Rodriguez Cobos", "value":20},{"caption":"Arturo Andres Roig", "value":21},{"caption":"Ricardo Rojas", "value":22}];
 		  myjson.each(function(t){tlist2.autoFeed(t)});

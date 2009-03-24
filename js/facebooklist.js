@@ -249,6 +249,7 @@ var FacebookList = Class.create(TextboxList, {
     this.id_base = $(element).identify() + "_" + this.options.get("className");
 
     this.data = [];
+    this.data_searchable = [];
     this.autoholder = $(autoholder).setOpacity(this.loptions.get('autocomplete').opacity);
     this.autoholder.observe('mouseover',function() {this.curOn = true;}.bind(this)).observe('mouseout',function() {this.curOn = false;}.bind(this));
     this.autoresults = this.autoholder.select('ul').first();
@@ -263,22 +264,9 @@ var FacebookList = Class.create(TextboxList, {
         onSuccess: function(transport) {
           transport.responseText.evalJSON(true).each(function(t) { 
             this.autoFeed(t) }.bind(this));
-            this.createSearchableData();
           }.bind(this)
         }
       );
-    }
-  },
-
-  // This function creates an array of lowercase'd captions so we
-  // can search through them with .indexOf() instead of with a regular expression.
-  createSearchableData: function() {
-    if (this.data.length) {
-      this._data_searchable = new Array();
-      var with_case = this.options.get('caseSensitive');
-      for (var i=0,len=this.data.length; i<len; i++) {
-        this._data_searchable[i] = (with_case ? this.data[i].evalJSON(true).caption : this.data[i].evalJSON(true).caption.toLowerCase());
-      }
     }
   },
   
@@ -298,8 +286,8 @@ var FacebookList = Class.create(TextboxList, {
             search = search.toLowerCase();
           }
           var matches_found = 0;
-          for (var i=0,len=this._data_searchable.length; i<len; i++) {
-            if (this._data_searchable[i].indexOf(search) >= 0) {
+          for (var i=0,len=this.data_searchable.length; i<len; i++) {
+            if (this.data_searchable[i].indexOf(search) >= 0) {
               matches[matches_found++] = this.data[i];
             }
           }
@@ -370,8 +358,11 @@ var FacebookList = Class.create(TextboxList, {
   },
 
   autoFeed: function(text) {
-    if (this.data.indexOf(Object.toJSON(text)) == -1)
+    var with_case = this.options.get('caseSensitive');
+    if (this.data.indexOf(Object.toJSON(text)) == -1) {
       this.data.push(Object.toJSON(text));
+      this.data_searchable.push(with_case ? Object.toJSON(text).evalJSON(true).caption : Object.toJSON(text).evalJSON(true).caption.toLowerCase());
+    }
     return this;
   },
 

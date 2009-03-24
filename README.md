@@ -16,6 +16,35 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
  - [skaue]
  - Nickolas Daskalou
 
+## Parameters (and defaults)
+
+ - separator: ','
+ - extrainputs: true
+ - startinput: true
+ - hideempty: true
+ - newValues: false 
+   - allow new values to be created
+ - newValueDelimiters: ['[',']']
+   - define what values split into new entries
+ - spaceReplace: ''
+   - allow handling of new tag values when the tagging scheme doesn't allow spaces, this is set as blank by default and will have no impact
+ - fetchFile: undefined,
+   - location of JSON file
+ - fetchMethod: 'get'
+   - set HTTP method
+ - results: 10,
+   - maximum number of results to retrieve for display in the list (see also maxResults)
+ - maxResults: 0
+   - number of results to show in the list before scrolling  - when set to 0 then it uses the default of 10 (i.e. there is no 'zero' option)
+ - wordMatch: false
+   - when set to true will match only the beginning of word (only when using regex search), otherwise will match anywhere
+ - onEmptyInput: function(input){}
+   - callback that is called when user hits enter when the input is blank
+ - caseSensitive: false
+   - case sensitive/insensitive matching
+ - regexSearch: true
+   - specifies whether to search using a regular expression or simple text search (faster)
+
 ## Changelog
 
 ### 0.1
