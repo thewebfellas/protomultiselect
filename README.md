@@ -12,6 +12,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
  - Ran Grushkowsky/InteRiders Inc. : Porting into Prototype and further development
  - Loren Johnson, Venado Partners, LLC Modifications
  - Zuriel Barron, severelimitation.com
+ - Sean Cribbs
+ - [skaue]
 
 ## Changelog
 
@@ -43,3 +45,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - bug fix: fixed bug where it was not loading initial list values
   - bug fix: new values are not added into the autocomplete list upon removal
   - bug fix: improved browser compatibility (Safari, IE)
+  
+### 0.5
+  - Add search timeout to increase responsiveness to typing.
+  - Add non-standard autocomplete attribute to main input to prevent browser-supplied autocompletion in Gecko and some other browsers.
+  - bug when gsub'ing space wth "spaceReplace". Input-field does not have a function gsub, though its value has.

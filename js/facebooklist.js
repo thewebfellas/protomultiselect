@@ -1,45 +1,6 @@
 /*
-  Proto!MultiSelect 0.2
-  - Prototype version required: 6.0
-  
-  Credits:
-  - Idea: Facebook + Apple Mail
-  - Caret position method: Diego Perini <http://javascript.nwbox.com/cursor_position/cursor.js>
-  - Guillermo Rauch: Original MooTools script
-  - Ran Grushkowsky/InteRiders Inc. : Porting into Prototype and further development
-  
-  Changelog:
-  - 0.1: translation of MooTools script
-  - 0.2: renamed from Proto!TextboxList to Proto!MultiSelect, added new features/bug fixes
-        added feature: support to fetch list on-the-fly using AJAX    Credit: Cheeseroll
-        added feature: support for value/caption
-        added feature: maximum results to display, when greater displays a scrollbar   Credit: Marcel
-        added feature: filter by the beginning of word only or everywhere in the word   Credit: Kiliman
-        added feature: shows hand cursor when going over options
-        bug fix: the click event stopped working
-        bug fix: the cursor does not 'travel' when going up/down the list   Credit: Marcel
-*/
-
-/* Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message! */
-
-/*
-== Loren Johnson, Venado Partners, LLC Modifications -- 2/27/08 == 
-bug fix: moved class variables into initialize so they happen per instance. This allows multiple controls per page
-bug fix: added id_base attribute so that multiple controls on the same page have unique list item ids (won't work otherwise)
-feature: Added newValues option and logic to allow new values to be created when ended with a comma (tag selector use case)           
-mod: removed ajax fetch file happening on every search and moved it to initialization to laod all results immediately and not keep polling
-mod: added "fetchMethod" option so I could better accomodate my RESTful ways and set a "get" for retrieving
-mod: added this.update to the add and dispose methods to keep the target input box values always up to date
-mod: moved ResizableTextBox, TextBoxList and FaceBookList all into same file
-mod: added extra line breaks and fixed-up some indentation for readability
-mod: spaceReplace option added to allow handling of new tag values when the tagging scheme doesn't allow spaces, 
-     this is set as blank by default and will have no impact
-*/
-/*
-== Zuriel Barron, severelimitation.com -- 3/1/08 ==
-bug fix: fixed bug where it was not loading initial list values
-bug fix: new values are not added into the autocomplete list upon removal
-bug fix: improved browser compatibility (Safari, IE)
+  Proto!MultiSelect
+  Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message! 
 */
 
 // Added key contstant for COMMA watching happiness
@@ -210,7 +171,7 @@ var TextboxList = Class.create({
   
   createInput: function(options) {
     var li = new Element('li', {'class': this.options.get('className') + '-input'});
-    var el = new Element('input', Object.extend(options,{'type': 'text'}));
+    var el = new Element('input', Object.extend(options,{'type': 'text', 'autocomplete':'off'}));
     el.observe('click', function(e) { e.stop(); }).observe('focus', function(e) { if(! this.isSelfEvent('focus')) this.focus(li, true); }.bind(this)).observe('blur', function() { if(! this.isSelfEvent('blur')) this.blur(true); }.bind(this)).observe('keydown', function(e) { this.cacheData('lastvalue', this.value).cacheData('lastcaret', this.getCaretPosition()); });
     var tmp = li.cacheData('type', 'input').cacheData('input', el).insert(el);
     return tmp;
@@ -271,29 +232,6 @@ Element.addMethods({
 });
 
 function $pick(){for(var B=0,A=arguments.length;B<A;B++){if(!Object.isUndefined(arguments[B])){return arguments[B];}}return null;}
-
-/*
-  Proto!MultiSelect 0.2
-  - Prototype version required: 6.0
-  
-  Credits:
-  - Idea: Facebook
-  - Guillermo Rauch: Original MooTools script
-  - Ran Grushkowsky/InteRiders Inc. : Porting into Prototype and further development
-  
-  Changelog:
-  - 0.1: translation of MooTools script
-  - 0.2: renamed from Proto!TextboxList to Proto!MultiSelect, added new features/bug fixes
-        added feature: support to fetch list on-the-fly using AJAX    Credit: Cheeseroll
-        added feature: support for value/caption
-        added feature: maximum results to display, when greater displays a scrollbar   Credit: Marcel
-        added feature: filter by the beginning of word only or everywhere in the word   Credit: Kiliman
-        added feature: shows hand cursor when going over options
-        bug fix: the click event stopped working
-        bug fix: the cursor does not 'travel' when going up/down the list   Credit: Marcel
-*/
-
-/* Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message! */
 
 var FacebookList = Class.create(TextboxList, { 
   
@@ -437,12 +375,12 @@ var FacebookList = Class.create(TextboxList, {
         switch(e.keyCode) {
           case Event.KEY_UP: e.stop(); return this.autoMove('up');
           case Event.KEY_DOWN: e.stop(); return this.autoMove('down');
-		  case Event.KEY_SPACE:
+		      case Event.KEY_SPACE:
           case Event.KEY_COMMA:
             if(this.options.get('newValues')) {
               new_value_el = this.current.retrieveData('input');
               new_value_el.value = new_value_el.value.strip().gsub(",","");
-              if(!this.options.get("spaceReplace").blank()) new_value_el.gsub(" ", this.options.get("spaceReplace"));
+			        if(!this.options.get("spaceReplace").blank()) new_value_el.value.gsub(" ", this.options.get("spaceReplace"));
               if(!new_value_el.value.blank()) {
                 e.stop();
                 this.newvalue = true;
@@ -477,7 +415,10 @@ var FacebookList = Class.create(TextboxList, {
             // Removed Ajax.Request from here and moved to initialize, 
             // now doesn't create server queries every search but only 
             // refreshes the list on initialize (page load) 
-            if(this.dosearch) this.autoShow(input.value);
+            if(this.searchTimeout) clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(function(){
+              if(this.dosearch) this.autoShow(input.value);
+            }.bind(this), 250);
         }        
     }.bind(this));
     input.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e) { 
@@ -527,3 +468,4 @@ Element.addMethods({
   filter: function(D,E) { var C=[];for(var B=0,A=this.length;B<A;B++){if(D.call(E,this[B],B,this)){C.push(this[B]);}} return C; }
 });         
 
+/* Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message! */
