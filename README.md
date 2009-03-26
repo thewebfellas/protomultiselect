@@ -9,12 +9,13 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
  - Idea: Facebook + Apple Mail
  - Caret position method: Diego Perini <http://javascript.nwbox.com/cursor_position/cursor.js>
  - Guillermo Rauch: Original MooTools script
- - Ran Grushkowsky/InteRiders Inc. : Porting into Prototype and further development
- - Loren Johnson, Venado Partners, LLC Modifications
- - Zuriel Barron, severelimitation.com
- - Sean Cribbs
+ - Ran Grushkowsky/InteRiders Inc. <http://interiders.com/> 
+ - Loren Johnson, <http://www.hellovenado.com/>
+ - Zuriel Barron, <http://severelimitation.com/>
+ - Sean Cribbs <http://seancribbs.com/>
  - [skaue]
- - Nickolas Daskalou
+ - Nickolas Daskalou <http://www.footysx.com.au/>
+ - Chris Anderton <http://thewebfellas.com/>
 
 ## Parameters (and defaults)
 
@@ -91,5 +92,5 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - NOTE ON THE MAXRESULTS OPTION: The difference between the options "results" and "maxResults" is that "results" specifies the maximum number of visible rows allowed to be shown to the user before a scrollbar activates, whereas "maxResults" specifies the maximum number of results allowed to be in the scrollable list.
 
 ### 0.7
-  - fix non-regex search
-  - now stable
+  - fixed non regex search
+  - stable
