@@ -89,3 +89,7 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - Option to specify the maximum number of results to show (NOT the same as the "result" option, see comments below) (option: "maxResults", default: 10).
   - NOTE ON THE NON-REGULAR EXPRESSION SEARCH: If using non-regular expression search mode, the option "matchWord" WILL HAVE NO EFFECT on the results (ie., it will behave as if matchWord were set to false). This can be fixed but at 5am my pillow is looking too good to spend more time on this, so if anyone needs this feel free to email me a request and I'll get it done (nick at footysx.com.au).
   - NOTE ON THE MAXRESULTS OPTION: The difference between the options "results" and "maxResults" is that "results" specifies the maximum number of visible rows allowed to be shown to the user before a scrollbar activates, whereas "maxResults" specifies the maximum number of results allowed to be in the scrollable list.
+
+### 0.7
+  - fix non-regex search
+  - now stable
