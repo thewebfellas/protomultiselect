@@ -16,6 +16,7 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
  - [skaue]
  - Nickolas Daskalou <http://www.footysx.com.au/>
  - Chris Anderton <http://thewebfellas.com/>
+ - Dejan Strbac
 
 ## Parameters (and defaults)
 
@@ -94,3 +95,8 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
 ### 0.7
   - fixed non regex search
   - stable
+  
+### 0.8
+  - a number of updates provided by Dejan Strbac
+  - sanitizes characters so special characters don't break it
+  - escapes html

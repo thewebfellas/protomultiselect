@@ -47,7 +47,7 @@ var TextboxList = Class.create({
       startinput: true,
       hideempty: true,
       newValues: false,
-	    newValueDelimiters: ['[',']'],
+      newValueDelimiters: ['[',']'],
       spaceReplace: '',
       fetchFile: undefined,
       fetchMethod: 'get',
@@ -58,6 +58,7 @@ var TextboxList = Class.create({
       caseSensitive: false,
       regexSearch: true
     });
+    this.current_input = "";
     this.options.update(options);
     this.element = $(element).hide();    
     this.bits = new Hash();
@@ -100,6 +101,9 @@ var TextboxList = Class.create({
   
   update: function() {
     this.element.value = this.bits.values().join(this.options.get('separator'));
+    if (!this.current_input.blank()){
+      this.element.value += (this.element.value.blank() ? "" : this.options.get('separator')) + this.current_input;
+    }
     return this;
   },
   
@@ -312,6 +316,7 @@ var FacebookList = Class.create(TextboxList, {
           var el = new Element('li');
           el.observe('click',function(e) { 
               e.stop();
+              that.current_input = "";
               that.autoAdd(this); 
             }
           ).observe('mouseover', function() { that.autoFocus(this); } ).update(
@@ -324,10 +329,16 @@ var FacebookList = Class.create(TextboxList, {
         this
       );
     }
-    if (count > this.options.get('results'))
-      this.autoresults.setStyle({'height': (this.options.get('results')*24)+'px'});
-    else
-      this.autoresults.setStyle({'height': (count?(count*24):0)+'px'});
+    if (count == 0) {
+      // if there are no results, hide everything so that KEY_ENTER has no effect
+      this.autoHide();
+    } else {
+      if (count > this.options.get('results'))
+        this.autoresults.setStyle({'height': (this.options.get('results')*24)+'px'});
+      else
+        this.autoresults.setStyle({'height': (count?(count*24):0)+'px'});
+    }
+    
     return this;
   },
 
@@ -392,18 +403,7 @@ var FacebookList = Class.create(TextboxList, {
       switch(e.keyCode) {
         case Event.KEY_UP: e.stop(); return this.autoMove('up');
         case Event.KEY_DOWN: e.stop(); return this.autoMove('down');        
-        case Event.KEY_COMMA:
-          if(this.options.get('newValues')) {
-            new_value_el = this.current.retrieveData('input');
-            new_value_el.value = new_value_el.value.strip().gsub(",","");
-            if(!this.options.get("spaceReplace").blank()) new_value_el.value.gsub(" ", this.options.get("spaceReplace"));
-            if(!new_value_el.value.blank()) {
-              e.stop();
-              this.newvalue = true;
-              this.autoAdd(new_value_el);
-            }
-          }
-          break;
+        
         case Event.KEY_RETURN:
           // If the text input is blank and the user hits Enter call the
           // onEmptyInput callback.
@@ -411,7 +411,8 @@ var FacebookList = Class.create(TextboxList, {
             this.options.get("onEmptyInput")();
           }
           e.stop();
-          if(! this.autocurrent) break;
+          if(!this.autocurrent || !this.resultsshown) break;
+          this.current_input = "";
           this.autoAdd(this.autocurrent);
           this.autocurrent = false;
           this.autoenter = true;
@@ -421,28 +422,59 @@ var FacebookList = Class.create(TextboxList, {
           if(this.current && this.current.retrieveData('input'))
             this.current.retrieveData('input').clear();
           break;
-        default: this.dosearch = true;
+        default: 
+          this.dosearch = true;
       }
     }.bind(this));
     input.observe('keyup',function(e) {
       switch(e.keyCode) {
+        case Event.KEY_COMMA:
+          if(this.options.get('newValues')) {
+            new_value_el = this.current.retrieveData('input');
+            if (!new_value_el.value.endsWith('<')) {
+              keep_input = "";
+              new_value_el.value = new_value_el.value.strip();
+              if (new_value_el.value.indexOf(",") < (new_value_el.value.length - 1)){
+                comma_pos = new_value_el.value.indexOf(",");
+                keep_input = new_value_el.value.substr(comma_pos + 1);
+                new_value_el.value = new_value_el.value.substr(0,comma_pos).escapeHTML().strip();
+              } else {
+                new_value_el.value = new_value_el.value.gsub(",","").escapeHTML().strip();
+              }
+              if(!this.options.get("spaceReplace").blank()) new_value_el.value.gsub(" ", this.options.get("spaceReplace"));
+              if(!new_value_el.value.blank()) {
+                e.stop();
+                this.newvalue = true;
+                this.current_input = keep_input.escapeHTML().strip();
+                this.autoAdd(new_value_el);
+                input.value = keep_input;
+                this.update();			
+              }
+            }
+          }
+          break;
         case Event.KEY_UP: 
         case Event.KEY_DOWN: 
         case Event.KEY_RETURN:
         case Event.KEY_ESC: 
           break;              
         default: 
+          // If the user doesn't add comma after, the value is discarded upon submit
+          this.current_input = input.value.strip().escapeHTML();
+          this.update();
+          
           // Removed Ajax.Request from here and moved to initialize, 
           // now doesn't create server queries every search but only 
           // refreshes the list on initialize (page load) 
           if(this.searchTimeout) clearTimeout(this.searchTimeout);
             this.searchTimeout = setTimeout(function(){
-            if(this.dosearch) this.autoShow(input.value);
+              var sanitizer = new RegExp("[({[^$*+?\\\]})]","g");
+              if(this.dosearch) this.autoShow(input.value.replace(sanitizer,"\\$1"));
           }.bind(this), 250);
       }        
     }.bind(this));
     input.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e) { 
-      if(this.autoenter) e.stop();
+      if ((e.keyCode == Event.KEY_RETURN) && this.autoenter) e.stop();
       this.autoenter = false;
     }.bind(this));
     return li;
