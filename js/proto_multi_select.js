@@ -1,13 +1,13 @@
 /*
   Proto!MultiSelect
-  Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message! 
+  Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message!
 */
 
 // Added key contstant for COMMA watching happiness
 Object.extend(Event, { KEY_COMMA: 188, KEY_SPACE: 32 });
 
-var ResizableTextbox = Class.create({  
-  initialize: function(element, options) {
+var ResizableTextbox = Class.create({
+    initialize: function(element, options){
     var that = this;
     this.options = $H({
       min: 5,
@@ -45,6 +45,8 @@ var TextboxList = Class.create({
       separator: ',',
       extrainputs: true,
       startinput: true,
+      onAdd: function(text){},
+      onRemove: function(text){},
       hideempty: true,
       newValues: false,
       newValueDelimiters: ['[',']'],
@@ -60,7 +62,7 @@ var TextboxList = Class.create({
     });
     this.current_input = "";
     this.options.update(options);
-    this.element = $(element).hide();    
+    this.element = $(element).hide();
     this.bits = new Hash();
     this.events = new Hash();
     this.count = 0;
@@ -72,33 +74,34 @@ var TextboxList = Class.create({
     this.element.insert({'before':this.holder});
     this.holder.observe('click', function(event){
       event.stop();
-      if(this.maininput != this.current) this.focus(this.maininput);     
+      if(this.maininput != this.current) this.focus(this.maininput);
     }.bind(this));
     this.makeResizable(this.maininput);
     this.setEvents();
   },
-  
+
   setEvents: function() {
-    document.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e) {      
+    document.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e) {
       if(! this.current) return;
       if(this.current.retrieveData('type') == 'box' && e.keyCode == Event.KEY_BACKSPACE) e.stop();
-    }.bind(this));      
-         
+    }.bind(this));
+
     document.observe(
       'keyup', function(e) {
         e.stop();
-        if(! this.current) return;
+        if(! this.current) return nil;
         switch(e.keyCode){
           case Event.KEY_LEFT: return this.move('left');
           case Event.KEY_RIGHT: return this.move('right');
           case Event.KEY_DELETE:
           case Event.KEY_BACKSPACE: return this.moveDispose();
         }
-      }.bind(this)).observe(  
+	return nil;
+      }.bind(this)).observe(
       'click', function() { document.fire('blur'); }.bindAsEventListener(this)
     );
   },
-  
+
   update: function() {
     this.element.value = this.bits.values().join(this.options.get('separator'));
     if (!this.current_input.blank()){
@@ -106,11 +109,11 @@ var TextboxList = Class.create({
     }
     return this;
   },
-  
+
   add: function(text, html) {
     var id = this.id_base + '-' + this.count++;
     var el = this.createBox($pick(html, text), {'id': id, 'class': this.options.get('className'), 'newValue' : text.newValue ? 'true' : 'false'});
-    (this.current || this.maininput).insert({'before':el});                                         
+    (this.current || this.maininput).insert({'before':el});
     el.observe('click', function(e) {
       e.stop();
       this.focus(el);
@@ -119,9 +122,13 @@ var TextboxList = Class.create({
     // Dynamic updating... why not?
     this.update();
     if(this.options.get('extrainputs') && (this.options.get('startinput') || el.previous())) this.addSmallInput(el,'before');
+
+
+      this.options.get("onAdd")( text );
+
     return el;
   },
-  
+
   addSmallInput: function(el, where) {
     var input = this.createInput({'class': 'smallinput'});
     el.insert({}[where] = input);
@@ -130,18 +137,20 @@ var TextboxList = Class.create({
     if(this.options.get('hideempty')) input.hide();
     return input;
   },
-  
+
   dispose: function(el) {
     this.bits.unset(el.id);
     // Dynamic updating... why not?
+    this.options.get("onRemove")( el.innerHTML.stripScripts().unescapeHTML().replace(/[\n\r\s]+/g, ' ') );
     this.update();
     if(el.previous() && el.previous().retrieveData('small')) el.previous().remove();
     if(this.current == el) this.focus(el.next());
     if(el.retrieveData('type') == 'box') el.onBoxDispose(this);
-    el.remove();    
+      el.remove();
+
     return this;
   },
-  
+
   focus: function(el, nofocus) {
     if(! this.current) el.fire('focus');
     else if(this.current == el) return this;
@@ -149,33 +158,33 @@ var TextboxList = Class.create({
     el.addClassName(this.options.get('className') + '-' + el.retrieveData('type') + '-focus');
     if(el.retrieveData('small')) el.setStyle({'display': 'block'});
     if(el.retrieveData('type') == 'input') {
-      el.onInputFocus(this);      
+      el.onInputFocus(this);
       if(! nofocus) this.callEvent(el.retrieveData('input'), 'focus');
     }
     else el.fire('onBoxFocus');
-    this.current = el;    
+    this.current = el;
     return this;
   },
-  
+
   blur: function(noblur) {
     if(! this.current) return this;
     if(this.current.retrieveData('type') == 'input') {
       var input = this.current.retrieveData('input');
-      if(! noblur) this.callEvent(input, 'blur');   
+      if(! noblur) this.callEvent(input, 'blur');
       input.onInputBlur(this);
     }
     else this.current.fire('onBoxBlur');
-    if(this.current.retrieveData('small') && ! input.get('value') && this.options.get('hideempty')) 
+    if(this.current.retrieveData('small') && ! input.get('value') && this.options.get('hideempty'))
       this.current.hide();
     this.current.removeClassName(this.options.get('className') + '-' + this.current.retrieveData('type') + '-focus');
     this.current = false;
     return this;
   },
-  
+
   createBox: function(text, options) {
     return new Element('li', options).addClassName(this.options.get('className') + '-box').update(text.caption).cacheData('type', 'box');
   },
-  
+
   createInput: function(options) {
     var li = new Element('li', {'class': this.options.get('className') + '-input'});
     var el = new Element('input', Object.extend(options,{'type': 'text', 'autocomplete':'off'}));
@@ -183,40 +192,41 @@ var TextboxList = Class.create({
     var tmp = li.cacheData('type', 'input').cacheData('input', el).insert(el);
     return tmp;
   },
-  
+
   callEvent: function(el, type) {
     this.events.set(type, el);
     el[type]();
   },
-  
+
   isSelfEvent: function(type) {
     return (this.events.get(type)) ? !! this.events.unset(type) : false;
   },
-  
+
   makeResizable: function(li) {
     var el = li.retrieveData('input');
     el.cacheData('resizable', new ResizableTextbox(el, Object.extend(this.options.get('resizable'),{min: el.offsetWidth, max: (this.element.getWidth()?this.element.getWidth():0)})));
     return this;
   },
-  
+
   checkInput: function() {
     var input = this.current.retrieveData('input');
     return (! input.retrieveData('lastvalue') || (input.getCaretPosition() === 0 && input.retrieveData('lastcaret') === 0));
   },
-  
+
   move: function(direction) {
     var el = this.current[(direction == 'left' ? 'previous' : 'next')]();
     if(el && (! this.current.retrieveData('input') || ((this.checkInput() || direction == 'right')))) this.focus(el);
     return this;
   },
-  
+
   moveDispose: function() {
     if(this.current.retrieveData('type') == 'box') return this.dispose(this.current);
-    if(this.checkInput() && this.bits.keys().length && this.current.previous()) return this.focus(this.current.previous());
+      if(this.checkInput() && this.bits.keys().length && this.current.previous()) return this.focus(this.current.previous());
+      return nil;
   }
 });
 
-//helper functions 
+//helper functions
 Element.addMethods({
   getCaretPosition: function() {
     if (this.createTextRange) {
@@ -226,7 +236,7 @@ Element.addMethods({
       return this.value.lastIndexOf(r.text);
     } else return this.selectionStart;
   },
-  cacheData: function(element, key, value) { 
+  cacheData: function(element, key, value) {
     if (Object.isUndefined(this[$(element).identify()]) || !Object.isHash(this[$(element).identify()]))
       this[$(element).identify()] = $H();
     this[$(element).identify()].set(key,value);
@@ -234,78 +244,115 @@ Element.addMethods({
   },
   retrieveData: function(element,key) {
     return this[$(element).identify()].get(key);
-  }  
+  }
 });
 
 function $pick(){for(var B=0,A=arguments.length;B<A;B++){if(!Object.isUndefined(arguments[B])){return arguments[B];}}return null;}
 
-var FacebookList = Class.create(TextboxList, { 
-  initialize: function($super,element, autoholder, options, func) {
-    $super(element, options);
-    this.loptions = $H({    
-      autocomplete: {
-        'opacity': 1,
-        'maxresults': 10,
-        'minchars': 1
-      }
-    });
-
-    this.id_base = $(element).identify() + "_" + this.options.get("className");
-
-    this.data = [];
-    this.data_searchable = [];
-    this.autoholder = $(autoholder).setOpacity(this.loptions.get('autocomplete').opacity);
-    this.autoholder.observe('mouseover',function() {this.curOn = true;}.bind(this)).observe('mouseout',function() {this.curOn = false;}.bind(this));
-    this.autoresults = this.autoholder.select('ul').first();
-	  var children = this.autoresults.select('li');
-    children.each(function(el) { this.add({value:el.readAttribute('value'),caption:el.innerHTML}); }, this);
-
-    // Loading the options list only once at initialize. 
-    // This would need to be further extended if the list was exceptionally long
-    if (!Object.isUndefined(this.options.get('fetchFile'))) {
-      new Ajax.Request(this.options.get('fetchFile'), {
-        method: this.options.get('fetchMethod'),
-        onSuccess: function(transport) {
-          transport.responseText.evalJSON(true).each(function(t) { 
-            this.autoFeed(t) }.bind(this));
-          }.bind(this)
-        }
-      );
-    }
-  },
-  
-  autoShow: function(search) {
-    this.autoholder.setStyle({'display': 'block'});
-    this.autoholder.descendants().each(function(e) { e.hide() });
-    if(! search || ! search.strip() || (! search.length || search.length < this.loptions.get('autocomplete').minchars)) {
-      this.autoholder.select('.default').first().setStyle({'display': 'block'});
-      this.resultsshown = false;
-    } else {
-      this.resultsshown = true;
-      this.autoresults.setStyle({'display': 'block'}).update('');
-      if (!this.options.get('regexSearch')) {
-        var matches = new Array();
-        if (search) {
-          if (!this.options.get('caseSensitive')) {
-            search = search.toLowerCase();
-          }
-          var matches_found = 0;
-          for (var i=0,len=this.data_searchable.length; i<len; i++) {
-            if (this.data_searchable[i].indexOf(search) >= 0) {
-              matches[matches_found++] = this.data[i];
+var ProtoMultiSelect = Class.create(TextboxList, {
+    initialize: function($super,element, autoholder, options, func) {
+        $super(element, options);
+        this.loptions = $H({
+            autocomplete: {
+                'opacity': 1,
+                'maxresults': 10,
+                'minchars': 1
             }
-          }
+        });
+
+        this.id_base = $(element).identify() + "_" + this.options.get("className");
+
+        this.data = [];
+        this.data_searchable = [];
+        this.autoholder = $(autoholder).setOpacity(this.loptions.get('autocomplete').opacity);
+        this.autoholder.observe('mouseover',function() {this.curOn = true;}.bind(this)).observe('mouseout',function() {this.curOn = false;}.bind(this));
+        this.autoresults = this.autoholder.select('ul').first();
+	var children = this.autoresults.select('li');
+        children.each(function(el) { this.add({value:el.readAttribute('value'),caption:el.innerHTML}); }, this);
+
+        // Loading the options list only once at initialize.
+        // This would need to be further extended if the list was exceptionally long
+        if (!Object.isUndefined(this.options.get('fetchFile'))) {
+            new Ajax.Request(this.options.get('fetchFile'), {
+                method: this.options.get('fetchMethod'),
+                onSuccess: function(transport) {
+                    transport.responseText.evalJSON(true).each(function(t) {
+                        this.autoFeed(t); }.bind(this));
+                }.bind(this)
+            } );
         }
-      } else {
-        if (this.options.get('wordMatch')) {
-          var regexp = new RegExp("(^|\\s)"+search,(!this.options.get('caseSensitive') ? 'i' : ''));
+    },
+
+    autoShow: function(search) {
+        this.autoholder.setStyle({'display': 'block'});
+        this.autoholder.descendants().each(function(e) { e.hide(); });
+        if(! search || ! search.strip() || (! search.length || search.length < this.loptions.get('autocomplete').minchars)) {
+            this.autoholder.select('.default').first().setStyle({'display': 'block'});
+            this.resultsshown = false;
         } else {
-          var regexp = new RegExp(search,(!this.options.get('caseSensitive') ? 'i' : ''));
-          var matches = this.data.filter( 
-            function(str) { 
-            return str ? regexp.test(str.evalJSON(true).caption) : false;
-          });
+            this.resultsshown = true;
+            this.autoresults.setStyle({'display': 'block'}).update('');
+            if (!this.options.get('regexSearch')) {
+                var matches = new Array();
+                if (search) {
+                    if (!this.options.get('caseSensitive')) {
+                        search = search.toLowerCase();
+                    }
+                    var matches_found = 0;
+                    for (var i=0,len=this.data_searchable.length; i<len; i++) {
+                        if (this.data_searchable[i].indexOf(search) >= 0) {
+                            var v=this.data[i];
+                            matches[matches_found++] = v;
+                        }
+                    }
+                }
+            } else {
+                if (this.options.get('wordMatch')) {
+                    var regexp = new RegExp("(^|\\s)"+search,(!this.options.get('caseSensitive') ? 'i' : ''));
+                } else {
+                    var regexp = new RegExp(search,(!this.options.get('caseSensitive') ? 'i' : ''));
+                    var matches = this.data.filter(
+                        function(str) {
+                            return str ? regexp.test(str.evalJSON(true).caption) : false;
+                        });
+                }
+            }
+            var count = 0;
+            matches.each(
+                function(result, ti) {
+                    count++;
+                    if(ti >= (this.options.get('maxResults') ? this.options.get('maxResults') : this.loptions.get('autocomplete').maxresults)) return;
+                    var that = this;
+                    var el = new Element('li');
+                    el.observe('click',function(e) {
+                        e.stop();
+                        that.current_input = "";
+                        that.autoAdd(this);
+                    }
+                              ).observe('mouseover', function() { that.autoFocus(this); } ).update(
+                                  this.autoHighlight(result.evalJSON(true).caption, search)
+                              );
+                    this.autoresults.insert(el);
+                    el.cacheData('result', result.evalJSON(true));
+                    if(ti == 0) this.autoFocus(el);
+                },
+                this
+            );
         }
+        if (count == 0) {
+            // if there are no results, hide everything so that KEY_ENTER has no effect
+            this.autoHide();
+        } else {
+            if (count > this.options.get('results'))
+                this.autoresults.setStyle({'height': (this.options.get('results')*24)+'px'});
+            else
+                this.autoresults.setStyle({'height': (count?(count*24):0)+'px'});
+        }
+<<<<<<< HEAD:js/multi_select.js
+
+        return this;
+    },
+=======
       }
       var count = 0;
       matches.each(
@@ -314,10 +361,10 @@ var FacebookList = Class.create(TextboxList, {
           if(ti >= (this.options.get('maxResults') ? this.options.get('maxResults') : this.loptions.get('autocomplete').maxresults)) return;
           var that = this;
           var el = new Element('li');
-          el.observe('click',function(e) { 
+          el.observe('click',function(e) {
               e.stop();
               that.current_input = "";
-              that.autoAdd(this); 
+              that.autoAdd(this);
             }
           ).observe('mouseover', function() { that.autoFocus(this); } ).update(
             this.autoHighlight(result.evalJSON(true).caption, search)
@@ -325,7 +372,7 @@ var FacebookList = Class.create(TextboxList, {
           this.autoresults.insert(el);
           el.cacheData('result', result.evalJSON(true));
           if(ti == 0) this.autoFocus(el);
-        }, 
+        },
         this
       );
     }
@@ -338,7 +385,7 @@ var FacebookList = Class.create(TextboxList, {
       else
         this.autoresults.setStyle({'height': (count?(count*24):0)+'px'});
     }
-    
+
     return this;
   },
 
@@ -348,23 +395,23 @@ var FacebookList = Class.create(TextboxList, {
     });
   },
 
-  autoHide: function() {    
+  autoHide: function() {
     this.resultsshown = false;
     this.autoholder.hide();
     return this;
   },
 
   autoFocus: function(el) {
-    if(! el) return;
+    if(! el) return nil;
     if(this.autocurrent) this.autocurrent.removeClassName('auto-focus');
     this.autocurrent = el.addClassName('auto-focus');
     return this;
   },
 
-  autoMove: function(direction) {    
-    if(!this.resultsshown) return;
+  autoMove: function(direction) {
+    if(!this.resultsshown) return nil;
     this.autoFocus(this.autocurrent[(direction == 'up' ? 'previous' : 'next')]());
-    this.autoresults.scrollTop = this.autocurrent.positionedOffset()[1]-this.autocurrent.getHeight();         
+    this.autoresults.scrollTop = this.autocurrent.positionedOffset()[1]-this.autocurrent.getHeight();
     return this;
   },
 
@@ -382,7 +429,7 @@ var FacebookList = Class.create(TextboxList, {
       this.add({caption: el.value, value: el.value, newValue: true});
       var input = el;
     } else if(!el || ! el.retrieveData('result')) {
-      return;
+      return nil;
     } else {
       this.add(el.retrieveData('result'));
       delete this.data[this.data.indexOf(Object.toJSON(el.retrieveData('result')))];
@@ -402,8 +449,8 @@ var FacebookList = Class.create(TextboxList, {
 
       switch(e.keyCode) {
         case Event.KEY_UP: e.stop(); return this.autoMove('up');
-        case Event.KEY_DOWN: e.stop(); return this.autoMove('down');        
-        
+        case Event.KEY_DOWN: e.stop(); return this.autoMove('down');
+        case Event.KEY_DOWN: e.stop(); return this.autoMove('down');
         case Event.KEY_RETURN:
           // If the text input is blank and the user hits Enter call the
           // onEmptyInput callback.
@@ -417,14 +464,15 @@ var FacebookList = Class.create(TextboxList, {
           this.autocurrent = false;
           this.autoenter = true;
           break;
-        case Event.KEY_ESC: 
+        case Event.KEY_ESC:
           this.autoHide();
           if(this.current && this.current.retrieveData('input'))
             this.current.retrieveData('input').clear();
           break;
-        default: 
+        default:
           this.dosearch = true;
       }
+      return nil;
     }.bind(this));
     input.observe('keyup',function(e) {
       switch(e.keyCode) {
@@ -448,32 +496,32 @@ var FacebookList = Class.create(TextboxList, {
                 this.current_input = keep_input.escapeHTML().strip();
                 this.autoAdd(new_value_el);
                 input.value = keep_input;
-                this.update();			
+                this.update();
               }
             }
           }
           break;
-        case Event.KEY_UP: 
-        case Event.KEY_DOWN: 
+        case Event.KEY_UP:
+        case Event.KEY_DOWN:
         case Event.KEY_RETURN:
-        case Event.KEY_ESC: 
-          break;              
-        default: 
+        case Event.KEY_ESC:
+          break;
+        default:
           // If the user doesn't add comma after, the value is discarded upon submit
           this.current_input = input.value.strip().escapeHTML();
           this.update();
-          
-          // Removed Ajax.Request from here and moved to initialize, 
-          // now doesn't create server queries every search but only 
-          // refreshes the list on initialize (page load) 
+
+          // Removed Ajax.Request from here and moved to initialize,
+          // now doesn't create server queries every search but only
+          // refreshes the list on initialize (page load)
           if(this.searchTimeout) clearTimeout(this.searchTimeout);
             this.searchTimeout = setTimeout(function(){
               var sanitizer = new RegExp("[({[^$*+?\\\]})]","g");
               if(this.dosearch) this.autoShow(input.value.replace(sanitizer,"\\$1"));
           }.bind(this), 250);
-      }        
+      }
     }.bind(this));
-    input.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e) { 
+    input.observe(Prototype.Browser.IE ? 'keydown' : 'keypress', function(e) {
       if ((e.keyCode == Event.KEY_RETURN) && this.autoenter) e.stop();
       this.autoenter = false;
     }.bind(this));
@@ -482,10 +530,10 @@ var FacebookList = Class.create(TextboxList, {
 
   createBox: function($super,text, options) {
     var li = $super(text, options);
-    li.observe('mouseover',function() { 
+    li.observe('mouseover',function() {
       this.addClassName('bit-hover');
-    }).observe('mouseout',function() { 
-      this.removeClassName('bit-hover') 
+    }).observe('mouseout',function() {
+	this.removeClassName('bit-hover');
     });
     var a = new Element('a', {
       'href': '#',
@@ -502,14 +550,14 @@ var FacebookList = Class.create(TextboxList, {
 });
 
 Element.addMethods({
-  onBoxDispose: function(item,obj) { 
+  onBoxDispose: function(item,obj) {
   // Set to not to "add back" values in the drop-down upon delete if they were new values
 	item = item.retrieveData('text').evalJSON(true);
 	if(!item.newValue)
-    	obj.autoFeed(item); 
+    	obj.autoFeed(item);
   },
-  onInputFocus: function(el,obj) { obj.autoShow(); },    
-  onInputBlur: function(el,obj) { 
+  onInputFocus: function(el,obj) { obj.autoShow(); },
+  onInputBlur: function(el,obj) {
     obj.lastinput = el;
     if(!obj.curOn) {
         obj.blurhide = obj.autoHide.bind(obj).delay(0.1);
@@ -517,5 +565,5 @@ Element.addMethods({
   },
   filter: function(D,E) { var C=[];for(var B=0,A=this.length;B<A;B++){if(D.call(E,this[B],B,this)){C.push(this[B]);}} return C; }
 });
-  
+
 /* Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep this message! */
