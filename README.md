@@ -46,6 +46,10 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
    - case sensitive/insensitive matching
  - regexSearch: true
    - specifies whether to search using a regular expression or simple text search (faster)
+ - onAdd: function( input ){}
+   - callback that is called when a new element is added to input.  Argument is an object containing caption  and value members.  If it's a newvalue, caption will be nil.
+ - onRemove: function( value ){}
+   - callback that is called when a element is removed from the input.  Argument is the value of the element. 
 
 ## Changelog
 
@@ -100,3 +104,12 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - a number of updates provided by Dejan Strbac
   - sanitizes characters so special characters don't break it
   - escapes html
+
+### 0.8.1
+  - small changes by Nathan Stitt
+  - Added callbacks onAdd and onRemove for integration into existing projects
+  - Renamed main class from FacebookList to MultiSelect. I don't like calling it Facebook becouse of trademark issues.  Plus it's confusingly called that in the docs.
+  - Went through file with Emacs JS2 mode and fixed errors identified, mostly missing commas and semicolons.
+  - Ignore Emacs backup and OSX .DS_Store files
+
+
