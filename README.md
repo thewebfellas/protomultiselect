@@ -67,7 +67,7 @@ Copyright: InteRiders <http://interiders.com/> - Distributed under MIT - Keep th
   - bug fix: added id_base attribute so that multiple controls on the same page have unique list item ids (won't work otherwise)
   - feature: Added newValues option and logic to allow new values to be created when ended with a comma (tag selector use case)           
   - mod: removed ajax fetch file happening on every search and moved it to initialization to laod all results immediately and not keep polling
-  - mod: added "fetchMethod" option so I could better accomodate my RESTful ways and set a "get" for retrieving
+  - mod: added "fetchMethod" option so I could better accommodate my RESTful ways and set a "get" for retrieving
   - mod: added this.update to the add and dispose methods to keep the target input box values always up to date
   - mod: moved ResizableTextBox, TextBoxList and FaceBookList all into same file
   - mod: added extra line breaks and fixed-up some indentation for readability
